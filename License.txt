@@ -2,7 +2,7 @@ Camouflaged Object Segmentation With Distraction Mining
 Haiyang Mei et al.
 CVPR June, 2021
 
-Copyright (c) 2020
+Copyright (c) 2021
 All rights reserved.
 
 School of Computer Science and Technology
