@@ -2,3 +2,5 @@
 loss.py
 
 eval/.mat
+./ckpt
+./results
