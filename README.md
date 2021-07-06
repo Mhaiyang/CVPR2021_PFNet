@@ -26,25 +26,9 @@ If you use this code, please cite:
 * PyTorch == 1.0.0
 * TorchVision == 0.2.1
 * CUDA 10.0  cudnn 7.2
-* Setup
-
 
 ### Test
-Download 'resnet50-19c8e357.pth' at [here](https://download.pytorch.org/models/resnet50-19c8e357.pth).
-Download trained model 'PFNet.pth` at [here](https://mhaiyang.github.io/CVPR2021_PFNet/index.html), then run `infer.py`.
-
-<!-- ### Experimental Results -->
-
-<!-- ##### Quantitative Results -->
-<!-- <img src="https://github.com/Mhaiyang/CVPR2020_GDNet/blob/master/assets/table1.png" width="60%" height="60%"> -->
-
-
-<!-- ##### Component analysis -->
-<!-- <img src="https://github.com/Mhaiyang/CVPR2020_GDNet/blob/master/assets/table2.png" width="60%" height="60%"> -->
-
-
-<!-- ##### Qualitative Results -->
-<!-- <img src="https://github.com/Mhaiyang/CVPR2020_GDNet/blob/master/assets/results.png" width="100%" height="100%"> -->
+Download 'resnet50-19c8e357.pth' at [here](https://download.pytorch.org/models/resnet50-19c8e357.pth) and trained model 'PFNet.pth' at [here](https://mhaiyang.github.io/CVPR2021_PFNet/index.html), then run `infer.py`.
 
 ### License
 Please see `license.txt`

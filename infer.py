@@ -31,7 +31,6 @@ check_mkdir(results_path)
 ckpt_path = './ckpt'
 exp_name = 'PFNet'
 args = {
-    'snapshot': '45',
     'scale': 416,
     'save_results': True
 }
@@ -59,10 +58,8 @@ results = OrderedDict()
 def main():
     net = PFNet(backbone_path).cuda(device_ids[0])
 
-    if len(args['snapshot']) > 0:
-        print('Load snapshot {} for testing'.format(args['snapshot']))
-        net.load_state_dict(torch.load(os.path.join(ckpt_path, exp_name, args['snapshot'] + '.pth')))
-        print('Load {} succeed!'.format(os.path.join(ckpt_path, exp_name, args['snapshot'] + '.pth')))
+    net.load_state_dict(torch.load('PFNet.pth'))
+    print('Load {} succeed!'.format('PFNet.pth'))
 
     net.eval()
     with torch.no_grad():
@@ -72,7 +69,7 @@ def main():
             image_path = os.path.join(root, 'image')
 
             if args['save_results']:
-                check_mkdir(os.path.join(results_path, exp_name + '_' + args['snapshot'], '%s' % (name)))
+                check_mkdir(os.path.join(results_path, exp_name, name))
 
             img_list = [os.path.splitext(f)[0] for f in os.listdir(image_path) if f.endswith('jpg')]
             for idx, img_name in enumerate(img_list):
@@ -89,9 +86,8 @@ def main():
                 prediction = np.array(transforms.Resize((h, w))(to_pil(prediction.data.squeeze(0).cpu())))
 
                 if args['save_results']:
-                    Image.fromarray(prediction).convert('L').save(os.path.join(results_path, exp_name + '_' + args['snapshot'],
-                                                                  '%s' % (name), img_name + '.png'))
-            print(('{} {}'.format(exp_name, args['snapshot'])))
+                    Image.fromarray(prediction).convert('L').save(os.path.join(results_path, exp_name, name, img_name + '.png'))
+            print(('{}'.format(exp_name)))
             print("{}'s average Time Is : {:.3f} s".format(name, mean(time_list)))
             print("{}'s average Time Is : {:.1f} fps".format(name, 1 / mean(time_list)))
 
