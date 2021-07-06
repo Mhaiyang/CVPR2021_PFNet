@@ -30,6 +30,7 @@ If you use this code, please cite:
 
 
 ### Test
+Download `resnet50-19c8e357.pth' at [here](https://download.pytorch.org/models/resnet50-19c8e357.pth).
 Download trained model `PFNet.pth` at [here](https://mhaiyang.github.io/CVPR2021_PFNet/index.html), then run `infer.py`.
 
 <!-- ### Experimental Results -->
