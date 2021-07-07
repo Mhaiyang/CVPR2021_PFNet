@@ -12,7 +12,7 @@ import os
 
 backbone_path = './backbone/resnet/resnet50-19c8e357.pth'
 
-datasets_root = '~/data/NEW'
+datasets_root = '../data/NEW'
 
 cod_training_root = os.path.join(datasets_root, 'train')
 

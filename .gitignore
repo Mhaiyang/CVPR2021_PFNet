@@ -1,5 +1,7 @@
 .gitignore
 loss.py
+PFNet.pth
+backbone/resnet/resnet50-19c8e357.pth
 
 eval/.mat
 ./ckpt

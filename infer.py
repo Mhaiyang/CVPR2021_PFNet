@@ -28,7 +28,6 @@ torch.cuda.set_device(device_ids[0])
 
 results_path = './results'
 check_mkdir(results_path)
-ckpt_path = './ckpt'
 exp_name = 'PFNet'
 args = {
     'scale': 416,
@@ -53,7 +52,6 @@ to_test = OrderedDict([
                        ])
 
 results = OrderedDict()
-
 
 def main():
     net = PFNet(backbone_path).cuda(device_ids[0])
@@ -93,7 +91,6 @@ def main():
 
     end = time.time()
     print("Total Testing Time: {}".format(str(datetime.timedelta(seconds=int(end - start)))))
-
 
 if __name__ == '__main__':
     main()

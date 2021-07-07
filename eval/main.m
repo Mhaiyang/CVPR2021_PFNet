@@ -20,7 +20,7 @@ algorithms = {
 %      '2020-CVPR-MINet-R';
 %      '2020-CVPR-SINet';
 
-     '2021-CVPR-PFNet';
+     'PFNet';
     };
 
 datasets = {
@@ -41,7 +41,7 @@ for i = 1:numel(algorithms)
     for j = 1:numel(datasets)
         dataset      = datasets{j};
         predpath     = ['../results/' alg '/' dataset '/'];
-        maskpath     = ['~/data/NEW/test/' dataset '/mask/'];
+        maskpath     = ['../../data/NEW/test/' dataset '/mask/'];
         if ~exist(predpath, 'dir'), continue; end
 
         names = dir(['~/data/NEW/test/' dataset '/mask/*.png']);
@@ -72,14 +72,10 @@ for i = 1:numel(algorithms)
             
             gt(gt>=0.5) = 1; gt(gt<0.5) = 0; gt = logical(gt);
             score1                   = MAE(fg, gt);
-            [score2, score3, score4] = Fmeasure(fg, gt, size(gt)); 
             score5                   = wFmeasure(fg, gt); 
             score6                   = Smeasure(fg, gt);
             score7                   = Emeasure(fg, gt);
             mae                      = mae  + score1;
-            prec                     = prec + score2;
-            rec                      = rec  + score3;
-            fm                       = fm   + score4;
             wfm                      = wfm  + score5;
             sm                       = sm   + score6;
             em                       = em   + score7;
