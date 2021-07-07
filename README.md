@@ -1,7 +1,7 @@
 # CVPR2021_PFNet
 
 ## Camouflaged Object Segmentation With Distraction Mining
-[Haiyang Mei](https://mhaiyang.github.io/), Ge-Peng Ji, Ziqi Wei, Xin Yang, Xiaopeng Wei, Deng-Ping Fan
+[Haiyang Mei](https://mhaiyang.github.io/), Ge-Peng Ji, Ziqi Wei, Xin Yang, Xiaopeng Wei, [Deng-Ping Fan](http://dpfan.net/)
 
 [[Paper](https://openaccess.thecvf.com/content/CVPR2021/papers/Mei_Camouflaged_Object_Segmentation_With_Distraction_Mining_CVPR_2021_paper.pdf)] [[Project Page](https://mhaiyang.github.io/CVPR2021_PFNet/index.html)]
 

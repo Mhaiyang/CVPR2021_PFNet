@@ -14,28 +14,55 @@ import torch.nn.functional as F
 
 import backbone.resnet.resnet as resnet
 
-class PAM_Module(nn.Module):
-    """ Position attention module"""
-
-    # Ref from SAGAN
+###################################################################
+# ################## Channel Attention Block ######################
+###################################################################
+class CA_Block(nn.Module):
     def __init__(self, in_dim):
-        super(PAM_Module, self).__init__()
+        super(CA_Block, self).__init__()
         self.chanel_in = in_dim
-
-        self.query_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim // 8, kernel_size=1)
-        self.key_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim // 8, kernel_size=1)
-        self.value_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim, kernel_size=1)
         self.gamma = nn.Parameter(torch.ones(1))
-
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
         """
             inputs :
-                x : input feature maps( B X C X H X W)
+                x : input feature maps (B X C X H X W)
             returns :
-                out : attention value + input feature
-                attention: B X (HxW) X (HxW)
+                out : channel attentive features
+        """
+        m_batchsize, C, height, width = x.size()
+        proj_query = x.view(m_batchsize, C, -1)
+        proj_key = x.view(m_batchsize, C, -1).permute(0, 2, 1)
+        energy = torch.bmm(proj_query, proj_key)
+        attention = self.softmax(energy)
+        proj_value = x.view(m_batchsize, C, -1)
+
+        out = torch.bmm(attention, proj_value)
+        out = out.view(m_batchsize, C, height, width)
+
+        out = self.gamma * out + x
+        return out
+
+###################################################################
+# ################## Spatial Attention Block ######################
+###################################################################
+class SA_Block(nn.Module):
+    def __init__(self, in_dim):
+        super(SA_Block, self).__init__()
+        self.chanel_in = in_dim
+        self.query_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim // 8, kernel_size=1)
+        self.key_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim // 8, kernel_size=1)
+        self.value_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim, kernel_size=1)
+        self.gamma = nn.Parameter(torch.ones(1))
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, x):
+        """
+            inputs :
+                x : input feature maps (B X C X H X W)
+            returns :
+                out : spatial attentive features
         """
         m_batchsize, C, height, width = x.size()
         proj_query = self.query_conv(x).view(m_batchsize, -1, width * height).permute(0, 2, 1)
@@ -50,47 +77,12 @@ class PAM_Module(nn.Module):
         out = self.gamma * out + x
         return out
 
-
-class CAM_Module(nn.Module):
-    """ Channel attention module"""
-
-    def __init__(self, in_dim):
-        super(CAM_Module, self).__init__()
-        self.chanel_in = in_dim
-
-        self.gamma = nn.Parameter(torch.ones(1))
-        self.softmax = nn.Softmax(dim=-1)
-
-    def forward(self, x):
-        """
-            inputs :
-                x : input feature maps( B X C X H X W)
-            returns :
-                out : attention value + input feature
-                attention: B X C X C
-        """
-        m_batchsize, C, height, width = x.size()
-        proj_query = x.view(m_batchsize, C, -1)
-        proj_key = x.view(m_batchsize, C, -1).permute(0, 2, 1)
-        energy = torch.bmm(proj_query, proj_key)
-        # energy_new = torch.max(energy, -1, keepdim=True)[0].expand_as(energy)-energy
-        # attention = self.softmax(energy_new)
-        attention = self.softmax(energy)
-        proj_value = x.view(m_batchsize, C, -1)
-
-        out = torch.bmm(attention, proj_value)
-        out = out.view(m_batchsize, C, height, width)
-
-        out = self.gamma * out + x
-        return out
-
-
 ###################################################################
-# ########################## Local Context ########################
+# ################## Context Exploration Block ####################
 ###################################################################
-class Local_Context(nn.Module):
+class Context_Exploration_Block(nn.Module):
     def __init__(self, input_channels):
-        super(Local_Context, self).__init__()
+        super(Context_Exploration_Block, self).__init__()
         self.input_channels = input_channels
         self.channels_single = int(input_channels / 4)
 
@@ -155,36 +147,34 @@ class Local_Context(nn.Module):
         p4 = self.p4(p4_input)
         p4_dc = self.p4_dc(p4)
 
-        lc = self.fusion(torch.cat((p1_dc, p2_dc, p3_dc, p4_dc), 1))
+        ce = self.fusion(torch.cat((p1_dc, p2_dc, p3_dc, p4_dc), 1))
 
-        return lc
-
+        return ce
 
 ###################################################################
-# ########################## Focus Module #########################
+# ##################### Positioning Module ########################
 ###################################################################
-class Focus(nn.Module):
+class Positioning(nn.Module):
     def __init__(self, channel):
-        super(Focus, self).__init__()
+        super(Positioning, self).__init__()
         self.channel = channel
-        self.pam = PAM_Module(self.channel)
-        self.cam = CAM_Module(self.channel)
+        self.cab = CA_Block(self.channel)
+        self.sab = SA_Block(self.channel)
         self.map = nn.Conv2d(self.channel, 1, 7, 1, 3)
 
     def forward(self, x):
-        cam = self.cam(x)
-        pam = self.pam(cam)
-        map = self.map(pam)
+        cab = self.cab(x)
+        sab = self.sab(cab)
+        map = self.map(sab)
 
-        return pam, map
-
+        return sab, map
 
 ###################################################################
-# ########################## Exploration Module ##################
+# ######################## Focus Module ###########################
 ###################################################################
-class Exploration(nn.Module):
+class Focus(nn.Module):
     def __init__(self, channel1, channel2):
-        super(Exploration, self).__init__()
+        super(Focus, self).__init__()
         self.channel1 = channel1
         self.channel2 = channel2
 
@@ -194,8 +184,8 @@ class Exploration(nn.Module):
         self.input_map = nn.Sequential(nn.UpsamplingBilinear2d(scale_factor=2), nn.Sigmoid())
         self.output_map = nn.Conv2d(self.channel1, 1, 7, 1, 3)
 
-        self.fp = Local_Context(self.channel1)
-        self.fn = Local_Context(self.channel1)
+        self.fp = Context_Exploration_Block(self.channel1)
+        self.fn = Context_Exploration_Block(self.channel1)
         self.alpha = nn.Parameter(torch.ones(1))
         self.beta = nn.Parameter(torch.ones(1))
         self.bn1 = nn.BatchNorm2d(self.channel1)
@@ -204,8 +194,9 @@ class Exploration(nn.Module):
         self.relu2 = nn.ReLU()
 
     def forward(self, x, y, in_map):
-        # x; current level features
-        # y: higher level features
+        # x; current-level features
+        # y: higher-level features
+        # in_map: higher-level prediction
 
         up = self.up(y)
 
@@ -216,18 +207,17 @@ class Exploration(nn.Module):
         fp = self.fp(f_feature)
         fn = self.fn(b_feature)
 
-        exp1 = up - (self.alpha * fp)
-        exp1 = self.bn1(exp1)
-        exp1 = self.relu1(exp1)
+        refine1 = up - (self.alpha * fp)
+        refine1 = self.bn1(refine1)
+        refine1 = self.relu1(refine1)
 
-        exp2 = exp1 + (self.beta * fn)
-        exp2 = self.bn2(exp2)
-        exp2 = self.relu2(exp2)
+        refine2 = refine1 + (self.beta * fn)
+        refine2 = self.bn2(refine2)
+        refine2 = self.relu2(refine2)
 
-        output_map = self.output_map(exp2)
+        output_map = self.output_map(refine2)
 
-        return exp2, output_map
-
+        return refine2, output_map
 
 ###################################################################
 # ########################## NETWORK ##############################
@@ -251,13 +241,13 @@ class PFNet(nn.Module):
         self.cr2 = nn.Sequential(nn.Conv2d(512, 128, 3, 1, 1), nn.BatchNorm2d(128), nn.ReLU())
         self.cr1 = nn.Sequential(nn.Conv2d(256, 64, 3, 1, 1), nn.BatchNorm2d(64), nn.ReLU())
 
-        # focus
-        self.focus = Focus(512)
+        # positioning
+        self.positioning = Positioning(512)
 
-        # Exploration
-        self.exploration3 = Exploration(256, 512)
-        self.exploration2 = Exploration(128, 256)
-        self.exploration1 = Exploration(64, 128)
+        # focus
+        self.focus3 = Focus(256, 512)
+        self.focus2 = Focus(128, 256)
+        self.focus1 = Focus(64, 128)
 
         for m in self.modules():
             if isinstance(m, nn.ReLU):
@@ -277,13 +267,13 @@ class PFNet(nn.Module):
         cr2 = self.cr2(layer2)
         cr1 = self.cr1(layer1)
 
-        # focus
-        focus, predict4 = self.focus(cr4)
+        # positioning
+        positioning, predict4 = self.positioning(cr4)
 
-        # exploration
-        exploration3, predict3 = self.exploration3(cr3, focus, predict4)
-        exploration2, predict2 = self.exploration2(cr2, exploration3, predict3)
-        exploration1, predict1 = self.exploration1(cr1, exploration2, predict2)
+        # focus
+        focus3, predict3 = self.focus3(cr3, positioning, predict4)
+        focus2, predict2 = self.focus2(cr2, focus3, predict3)
+        focus1, predict1 = self.focus1(cr1, focus2, predict2)
 
         # rescale
         predict4 = F.interpolate(predict4, size=x.size()[2:], mode='bilinear', align_corners=True)
