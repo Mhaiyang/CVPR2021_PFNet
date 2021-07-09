@@ -37,7 +37,7 @@ class structure_loss(torch.nn.Module):
     def __init__(self):
         super(structure_loss, self).__init__()
 
-    def _structure_loss(pred, mask):
+    def _structure_loss(self, pred, mask):
         weit = 1 + 5 * torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask)
         wbce = F.binary_cross_entropy_with_logits(pred, mask, reduce='none')
         wbce = (weit * wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
