@@ -27,8 +27,12 @@ If you use this code, please cite:
 * TorchVision == 0.2.1
 * CUDA 10.0  cudnn 7.2
 
+### Train
+Download 'resnet50-19c8e357.pth' at [here](https://download.pytorch.org/models/resnet50-19c8e357.pth), then run `train.py`.
+
+
 ### Test
-Download 'resnet50-19c8e357.pth' at [here](https://download.pytorch.org/models/resnet50-19c8e357.pth) and trained model 'PFNet.pth' at [here](https://mhaiyang.github.io/CVPR2021_PFNet/index.html), then run `infer.py`.
+Download trained model 'PFNet.pth' at [here](https://mhaiyang.github.io/CVPR2021_PFNet/index.html), then run `infer.py`.
 
 ### License
 Please see `license.txt`
